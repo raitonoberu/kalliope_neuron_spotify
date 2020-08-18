@@ -2,7 +2,11 @@ import logging
 import requests
 from time import sleep
 
-from kalliope.core.NeuronModule import NeuronModule, MissingParameterException, InvalidParameterException
+from kalliope.core.NeuronModule import (
+    NeuronModule,
+    MissingParameterException,
+    InvalidParameterException,
+)
 
 logging.basicConfig()
 logger = logging.getLogger("kalliope")
@@ -30,8 +34,17 @@ Search_Types = {
 
 class Spotify(NeuronModule):
     def __init__(self, **kwargs):
-        actions = (self.add, self.current, self.next, self.load, self.pause,
-                   self.prev, self.set_volume, self.volume_down, self.volume_up)
+        actions = (
+            self.add,
+            self.current,
+            self.next,
+            self.load,
+            self.pause,
+            self.prev,
+            self.set_volume,
+            self.volume_down,
+            self.volume_up,
+        )
 
         super(Spotify, self).__init__(**kwargs)
 
@@ -49,7 +62,9 @@ class Spotify(NeuronModule):
         self.volume = kwargs.get("volume")  # for SET_VOLUME
 
         if self._is_parameters_ok():
-            self.api = LibrespotJavaApi(self.ip, self.port, retries=self.retries, retry_delay=self.retry_delay)
+            self.api = LibrespotJavaApi(
+                self.ip, self.port, retries=self.retries, retry_delay=self.retry_delay
+            )
             action = actions[Spotify_Actions.index(self.action)]
             self.message = {"success": False}
             try:
@@ -65,65 +80,66 @@ class Spotify(NeuronModule):
         if not self._is_search_parameters_ok():
             return
         try:
-            result = self.api.search(self.query)[
-                'results'][Search_Types[self.search_type]]['hits'][0]
+            result = self.api.search(self.query)["results"][
+                Search_Types[self.search_type]
+            ]["hits"][0]
         except (KeyError, IndexError):
             return {}
         return self._format_search_result(result)
 
     @staticmethod
     def _format_search_result(result):
-        uri = result['uri']
-        name = result['name']
+        uri = result["uri"]
+        name = result["name"]
         if "artists" in result:
-            artists = [i['name'] for i in result['artists']]
+            artists = [i["name"] for i in result["artists"]]
             name = ", ".join(artists) + " - " + name
         return {"uri": uri, "name": name}
 
     def add(self):
-        self.message['name'] = None
+        self.message["name"] = None
 
         self.search_type = "TRACK"
         result = self._search()
         if not result:
             return
 
-        self.api.player_add_to_queue(result['uri'])
+        self.api.player_add_to_queue(result["uri"])
 
-        self.message['success'] = True
-        self.message['name'] = result['name']
+        self.message["success"] = True
+        self.message["name"] = result["name"]
 
     def current(self):
-        self.message['name'] = None
+        self.message["name"] = None
 
         current = self.api.player_current()
         if not current:
             return
 
-        self.message['success'] = True
-        self.message['name'] = self._name_from_current(current)
+        self.message["success"] = True
+        self.message["name"] = self._name_from_current(current)
 
     @staticmethod
     def _name_from_current(current):
-        artists = [i['name'] for i in current['track']['album']['artist']]
-        name = ", ".join(artists) + " - " + current['track']['name']
+        artists = [i["name"] for i in current["track"]["album"]["artist"]]
+        name = ", ".join(artists) + " - " + current["track"]["name"]
         return name
 
     def next(self):
         self.api.player_next()
-        self.message['success'] = True
+        self.message["success"] = True
 
     def load(self):
-        self.message['name'] = None
+        self.message["name"] = None
 
         result = self._search()
         if not result:
             return message
 
-        self.api.player_load(result['uri'], True)
+        self.api.player_load(result["uri"], True)
 
-        self.message['success'] = True
-        self.message['name'] = result['name']
+        self.message["success"] = True
+        self.message["name"] = result["name"]
 
     def pause(self):
         if self.pause_state is None:  # toggle play/pause
@@ -133,11 +149,11 @@ class Spotify(NeuronModule):
         if self.pause_state is False:
             self.api.player_resume()
 
-        self.message['success'] = True
+        self.message["success"] = True
 
     def prev(self):
         self.api.player_prev()
-        self.message['success'] = True
+        self.message["success"] = True
 
     def set_volume(self):
         if not self._is_volume_parameters_ok():
@@ -146,15 +162,15 @@ class Spotify(NeuronModule):
 
         self.api.player_set_volume(value)
 
-        self.message['success'] = True
+        self.message["success"] = True
 
     def volume_down(self):
         self.api.player_volume_down()
-        self.message['success'] = True
+        self.message["success"] = True
 
     def volume_up(self):
         self.api.player_volume_up()
-        self.message['success'] = True
+        self.message["success"] = True
 
     @staticmethod
     def _convert_volume(value):
@@ -165,8 +181,7 @@ class Spotify(NeuronModule):
 
     def _is_parameters_ok(self):
         if self.action is None:
-            raise MissingParameterException(
-                "Spotify needs an action parameter")
+            raise MissingParameterException("Spotify needs an action parameter")
         if self.action not in Spotify_Actions:
             raise InvalidParameterException("Invalid action parameter")
 
@@ -175,7 +190,8 @@ class Spotify(NeuronModule):
     def _is_search_parameters_ok(self):
         if self.query is None:
             raise MissingParameterException(
-                self.action + " action needs a query parameter")
+                self.action + " action needs a query parameter"
+            )
         if self.search_type not in Search_Types:
             raise InvalidParameterException("Invalid search_type parameter")
 
@@ -184,21 +200,22 @@ class Spotify(NeuronModule):
     def _is_volume_parameters_ok(self):
         if self.volume is None:
             raise MissingParameterException(
-                self.action + " action needs a volume parameter")
+                self.action + " action needs a volume parameter"
+            )
         try:
             value = int(self.volume)
         except ValueError:
-            raise InvalidParameterException(
-                "volume parameter must be integer 0..100")
+            raise InvalidParameterException("volume parameter must be integer 0..100")
         if value < 0 or value > 100:
-            raise InvalidParameterException(
-                "volume parameter must be integer 0..100")
+            raise InvalidParameterException("volume parameter must be integer 0..100")
 
         return True
 
 
 class LibrespotJavaApi:
-    def __init__(self, ip="127.0.0.1", port=24879, retries=3, retry_delay=1, session=None):
+    def __init__(
+        self, ip="127.0.0.1", port=24879, retries=3, retry_delay=1, session=None
+    ):
         if not session:
             session = requests.Session()
         self.session = session
@@ -302,11 +319,11 @@ class LibrespotJavaApi:
 
     def profile_followers(self, user_id) -> list:
         """Retrieve a list of profiles that are followers of the specified user"""
-        return self._post("profile/{0}/followers".format(user_id)).json()['profiles']
+        return self._post("profile/{0}/followers".format(user_id)).json()["profiles"]
 
     def profile_following(self, user_id) -> list:
         """Retrieve a list of profiles that the specified user is following"""
-        return self._post("profile/{0}/following".format(user_id)).json()['profiles']
+        return self._post("profile/{0}/following".format(user_id)).json()["profiles"]
 
 
 class ApiException(Exception):
