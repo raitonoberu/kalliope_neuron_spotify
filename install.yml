@@ -1,0 +1,24 @@
+- name: Kalliope spotify neuron install
+  hosts: localhost
+  gather_facts: no
+  connection: local
+  become: true
+
+  tasks:
+    - name: "Install pip dependencies"
+      pip:
+        name: requests
+        executable: pip3
+    - name: "Install SpoCon"
+      shell: curl -sL https://spocon.github.io/spocon/install.sh | sh
+      args:
+        warn: no
+    - name: "Configuration reminder"
+      debug:
+        msg:
+          - "##################################"
+          - "Do not forget to configure SpoCon!"
+          - "(https://github.com/spocon/spocon#configuration)"
+          - "You must use USER_PASS authentication strategy"
+          - "It's also recommended to disable cache"
+          - "##################################"

@@ -1,0 +1,10 @@
+name: "spotify"
+type: "neuron"
+author: "raitonoberu"
+
+kalliope_supported_version:
+  - 0.7
+
+tags:
+  - "spotify"
+  - "music"
