@@ -18,7 +18,7 @@
         msg:
           - "##################################"
           - "Do not forget to configure SpoCon!"
-          - "(https://github.com/spocon/spocon#configuration)"
+          - "(https://github.com/raitonoberu/kalliope_neuron_spotify#configuration)"
           - "You must use USER_PASS authentication strategy"
           - "It's also recommended to disable cache"
           - "##################################"

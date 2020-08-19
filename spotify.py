@@ -52,7 +52,6 @@ class Spotify(NeuronModule):
 
         self.ip = kwargs.get("ip", "127.0.0.1")
         self.port = kwargs.get("port", 24879)
-        self.ignore_exceptions = kwargs.get("ignore_exceptions", True)
         self.retries = kwargs.get("retries", 3)
         self.retry_delay = kwargs.get("retry_delay", 1)
 
@@ -63,16 +62,17 @@ class Spotify(NeuronModule):
 
         if self._is_parameters_ok():
             self.api = LibrespotJavaApi(
-                self.ip, self.port, retries=self.retries, retry_delay=self.retry_delay
+                self.ip,
+                self.port,
+                retries=int(self.retries),
+                retry_delay=int(self.retry_delay),
             )
             action = actions[Spotify_Actions.index(self.action)]
             self.message = {"success": False}
             try:
                 action()
-            except Exception as e:
-                logger.error(e)
-                if not self.ignore_exceptions:
-                    raise
+            except:
+                logger.exception("")
 
             self.say(self.message)
 
