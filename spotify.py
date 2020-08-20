@@ -90,6 +90,8 @@ class Spotify(NeuronModule):
     @staticmethod
     def _format_search_result(result):
         uri = result["uri"]
+        if "user" in uri:  # we cant play user, right?
+            return {}
         name = result["name"]
         if "artists" in result:
             artists = [i["name"] for i in result["artists"]]
